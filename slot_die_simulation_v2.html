@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Slot-Die Coating Engineering Screening Tool v2</title>
+<style>
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface2: #f8f9fa;
+  --border: #d0d5dd;
+  --border2: #e3e7ee;
+  --text: #1a1f2e;
+  --text2: #3c4560;
+  --muted: #6b7694;
+  --accent: #2558a8;
+  --accent-light: #e8eef8;
+  --ok: #1e7a3c;
+  --ok-bg: #e8f5ed;
+  --ok-border: #a3cfb5;
+  --warn: #8a5b00;
+  --warn-bg: #fdf3dc;
+  --warn-border: #e8c97a;
+  --bad: #9b1c1c;
+  --bad-bg: #fde8e8;
+  --bad-border: #f5b7b7;
+  --tab-active: #2558a8;
+  --tab-bg: #eaecf2;
+  --mono: "Courier New", Consolas, monospace;
+  --sans: "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 13px; line-height: 1.4; }
+
+/* ── NAV ── */
+#app-header {
+  background: #1e3560;
+  color: #fff;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #142845;
+}
+#app-header h1 { font-size: 14px; font-weight: 600; letter-spacing: .03em; }
+#app-header .subtitle { font-size: 11px; color: #a8bcda; margin-left: 6px; }
+
+#tab-bar {
+  background: #fff;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  padding: 0 12px;
+  gap: 0;
+}
+.tab-btn {
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  cursor: pointer;
+  letter-spacing: .02em;
+  transition: none;
+  margin-bottom: -2px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--accent); }
+.tab-btn.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
+
+/* ── LAYOUT ── */
+#main { max-width: 1480px; margin: 0 auto; padding: 14px 14px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 10px;
+}
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 6px;
+}
+
+/* ── GRID ── */
+.grid { display: grid; gap: 10px; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ── FORM ── */
+.field { display: flex; flex-direction: column; gap: 2px; }
+label { font-size: 11px; color: var(--text2); }
+input[type=number], select {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--sans);
+}
+input[type=number]:focus, select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface2);
+  color: var(--text);
+  resize: vertical;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #1a4080; border-color: #1a4080; color: #fff; }
+.btn-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+
+/* ── STATUS PILLS ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.pill-ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-border); }
+.pill-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
+.pill-bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-border); }
+
+/* ── TABLES ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 5px 8px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.data-table td { border: 1px solid var(--border2); padding: 5px 8px; }
+.data-table tr:nth-child(even) td { background: #fafbfc; }
+.data-table td.num { text-align: right; font-family: var(--mono); font-size: 11px; }
+.data-table td.score-cell { text-align: center; }
+
+/* ── SCORE DETAIL ── */
+.score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; }
+.score-bar-wrap { flex: 1; height: 10px; background: var(--border2); border-radius: 1px; overflow: hidden; }
+.score-bar { height: 100%; border-radius: 1px; }
+.score-label { min-width: 130px; color: var(--muted); }
+.score-value { min-width: 36px; text-align: right; font-family: var(--mono); font-weight: 700; }
+.score-range { min-width: 140px; color: #999; font-size: 10px; }
+
+/* ── FORMULA BOX ── */
+.formula {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ── KPI ── */
+.kpi-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.kpi-box {
+  flex: 1;
+  min-width: 130px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 8px 10px;
+}
+.kpi-box .kpi-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.kpi-box .kpi-val { font-size: 18px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+.kpi-box .kpi-unit { font-size: 10px; color: var(--muted); }
+
+/* ── CANVAS ── */
+canvas { display: block; border: 1px solid var(--border); border-radius: 2px; background: #fff; }
+
+/* ── NOTICE ── */
+.notice {
+  background: #eef3fb;
+  border: 1px solid #c0cfe8;
+  border-left: 3px solid var(--accent);
+  border-radius: 2px;
+  padding: 7px 10px;
+  font-size: 11px;
+  color: #2c4070;
+  margin-bottom: 10px;
+}
+.notice.warn-notice { background: var(--warn-bg); border-color: var(--warn-border); border-left-color: #c4860a; color: #5a3c00; }
+.notice.bad-notice  { background: var(--bad-bg);  border-color: var(--bad-border);  border-left-color: #c0201e; color: #5c0000; }
+
+/* ── LAYER HEADER COLORS ── */
+.layer-heat { border-top: 3px solid #2558a8; }
+.layer-moh  { border-top: 3px solid #6b42a0; }
+.layer-top  { border-top: 3px solid #1a7a5e; }
+
+/* ── THRESHOLD TABLE ── */
+.thresh-table { border-collapse: collapse; font-size: 11px; width: 100%; }
+.thresh-table th, .thresh-table td { border: 1px solid var(--border); padding: 4px 8px; }
+.thresh-table th { background: var(--surface2); font-weight: 700; color: var(--muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width:1100px) { .g3 { grid-template-columns: 1fr; } .g2 { grid-template-columns: 1fr; } .g4 { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:700px)  { .g4 { grid-template-columns: 1fr; } }
+
+/* ── PRINT ── */
+@media print { #tab-bar, .btn-row, .btn, #app-header { display: none !important; } .page { display: block !important; } }
+</style>
+</head>
+<body>
+
+<div id="app-header">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="2" fill="none" stroke="#a8bcda" stroke-width="1.2"/><path d="M5 14 L5 8 M8 14 L8 6 M11 14 L11 10 M14 14 L14 4" stroke="#7ab0e8" stroke-width="1.5" stroke-linecap="round"/></svg>
+  <h1>Slot-Die Coating — Multi-Layer Engineering Screening Tool</h1>
+  <span class="subtitle">Plausibility model only · Not CFD · Not a defect predictor</span>
+</div>
+
+<div id="tab-bar">
+  <button class="tab-btn active" onclick="showPage('page-input')">INPUT</button>
+  <button class="tab-btn" onclick="showPage('page-model')">MODEL</button>
+  <button class="tab-btn" onclick="showPage('page-results')">RESULTS</button>
+  <button class="tab-btn" onclick="showPage('page-viz')">VISUALIZATION</button>
+  <button class="tab-btn" onclick="showPage('page-report')">REPORT / EXPORT</button>
+</div>
+
+<div id="main">
+
+<!-- ================================================================ INPUT ================================================================ -->
+<div id="page-input" class="page active">
+
+  <div class="card">
+    <div class="card-title">Global Process Parameters</div>
+    <div class="grid g4">
+      <div class="field"><label>Line Speed [m/min]</label><input id="speed_mpm" type="number" step="10" value="1600"></div>
+      <div class="field"><label>Coating Width [m]</label><input id="width_m" type="number" step="0.1" value="5.2"></div>
+      <div class="field"><label>Die Gap H [µm]</label><input id="gap_um" type="number" step="1" value="60"></div>
+      <div class="field"><label>Lip Length L [mm]</label><input id="land_mm" type="number" step="0.05" value="0.5"></div>
+      <div class="field"><label>Solids Reference x_s_ref [–]</label><input id="x_s_ref" type="number" step="0.01" value="0.35"></div>
+      <div class="field"><label>System Logic</label>
+        <select id="conservative_mode">
+          <option value="true">Conservative (worst layer dominates)</option>
+          <option value="false">Weighted average</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g3" id="layerCards"></div>
+
+  <div class="card">
+    <div class="card-title">Monte Carlo Settings</div>
+    <div class="grid g4">
+      <div class="field"><label>Samples</label><input id="mc_samples" type="number" value="1000" min="50" max="5000" step="50"></div>
+      <div class="field"><label>Viscosity Uncertainty ± [%]</label><input id="u_mu" type="number" value="20"></div>
+      <div class="field"><label>Surface Tension Uncertainty ± [%]</label><input id="u_sigma" type="number" value="10"></div>
+      <div class="field"><label>Solids Uncertainty ± [%]</label><input id="u_solids" type="number" value="5"></div>
+      <div class="field"><label>Gap Uncertainty ± [%]</label><input id="u_gap" type="number" value="8"></div>
+      <div class="field"><label>Penetration Uncertainty ± [%]</label><input id="u_pen" type="number" value="25"></div>
+      <div class="field"><label>Time-dependent Penetration</label>
+        <select id="use_time_pen"><option value="false">Disabled</option><option value="true">Enabled: h_pen(t)=k√t</option></select>
+      </div>
+      <div class="field"><label>k_pen [µm/√s]</label><input id="k_pen" type="number" step="0.1" value="0.0"></div>
+      <div class="field"><label>Contact Time [ms]</label><input id="contact_ms" type="number" step="1" value="20"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doRun()">▶ Calculate All + Run Monte Carlo</button>
+      <button class="btn" onclick="resetDefaults()">Reset to Defaults</button>
+    </div>
+  </div>
+
+</div><!-- /page-input -->
+
+<!-- ================================================================ MODEL ================================================================ -->
+<div id="page-model" class="page">
+
+  <div class="notice">This tool is an engineering screening model. All scores are heuristic plausibility estimates, not physical certainty. They are based on dimensionless numbers and film geometry thresholds established from coating engineering literature and practical experience.</div>
+
+  <div class="grid g2">
+    <div>
+      <div class="card">
+        <div class="card-title">Physics Equations</div>
+        <div class="formula">Mass and Film Balance:
+  m_wet = m_dry / x_s                    [g/m²]
+  h_wet = (m_wet / 1000) / rho_wet       [m]
+  h_dry = (m_dry / 1000) / rho_dry       [m]
+
+Volumetric Flow Rate:
+  Q = U · b · h_wet                      [m³/s]
+  Q_L_min = Q · 60000                    [L/min]
+
+Dimensionless Numbers:
+  Ca = mu · U / sigma                    Capillary number
+  Re = rho_wet · U · H / mu             Reynolds number
+  Lambda = H / h_wet                     Gap ratio
+  gamma_dot = U / H                      Shear rate [1/s]
+
+Pressure Scale:
+  delta_p = 12 · mu · U · L / H²        [Pa]
+
+Penetration / Effective Thickness:
+  h_pen(t) = k_pen · sqrt(t)             [m] (optional)
+  h_eff_wet = h_wet · (1 - pen_frac) - h_pen(t)
+  h_eff_dry = h_dry · (h_eff_wet / h_wet)
+
+Continuity Reserve:
+  reserve = h_eff_dry / min_continuous_dry_threshold</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Viscosity Models</div>
+        <div class="formula">Mode A — Direct Input:
+  mu = mu_direct                          [Pa·s]
+
+Mode B — Exponential Thickener Model:
+  expo = k_thick · c_thick + k_solids · (x_s - x_s_ref)
+  mu = mu_base · exp(expo)               [Pa·s]
+
+Mode C — Power-Law:
+  K = mu_base · exp(expo)
+  mu(gamma_dot) = K · gamma_dot^(n-1)    [Pa·s]
+
+Parameter Correlations (Monte Carlo):
+  Higher solids → mu increases (positive correlation)
+  Higher mu → penetration decreases slightly
+  Lower sigma → improved wetting (Ca risk reduced)</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title">Scoring Logic — Process Score (0–100, lower = better)</div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Each component is scored 0–100 using a 4-band linear interpolation. Lower score = more stable.</p>
+        <table class="thresh-table">
+          <tr><th>Component</th><th>OK (≤33)</th><th>Warning (33–66)</th><th>Critical (>66)</th><th>Weight</th></tr>
+          <tr><td>Capillary Number Ca</td><td>Ca ≤ 0.1</td><td>0.1–2.0 → 2.0–5.0</td><td>Ca > 5.0</td><td>18%</td></tr>
+          <tr><td>Gap Ratio Λ = H/h_wet</td><td>Λ ≤ 0.5</td><td>0.5–1.4 → 1.4–3.0</td><td>Λ > 3.0</td><td>19%</td></tr>
+          <tr><td>Reynolds Re</td><td>Re ≤ 0.5</td><td>0.5–50 → 50–120</td><td>Re > 120</td><td>12%</td></tr>
+          <tr><td>Flow Q [L/min]</td><td>Q ≤ 20</td><td>20–600 → 600–1500</td><td>Q > 1500</td><td>15%</td></tr>
+          <tr><td>Penetration Fraction</td><td>pen ≤ 0.03</td><td>0.03–0.12 → 0.12–0.22</td><td>pen > 0.22</td><td>14%</td></tr>
+          <tr><td>Eff. Wet Thickness [µm]</td><td>h_eff ≥ 16</td><td>16 → 11 → 7</td><td>h_eff < 7</td><td>12%</td></tr>
+          <tr><td>Continuity Reserve</td><td>reserve ≥ 1.8</td><td>1.8 → 1.4 → 1.1</td><td>reserve < 1.0</td><td>10%</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Scoring Logic — Continuity Score (0–100, lower = better)</div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Replaces simple thickness check. Based on reserve ratio, absolute effective dry thickness, and penetration risk.</p>
+        <table class="thresh-table">
+          <tr><th>Component</th><th>OK (≤33)</th><th>Warning</th><th>Critical (>66)</th><th>Weight</th></tr>
+          <tr><td>Reserve = h_eff_dry / min_thresh</td><td>reserve ≥ 1.5</td><td>1.0–1.5</td><td>reserve < 1.0</td><td>55%</td></tr>
+          <tr><td>Absolute h_eff_dry vs min threshold</td><td>≥ 1.6× min</td><td>1.0–1.6×</td><td>&lt; 0.7× min</td><td>35%</td></tr>
+          <tr><td>Penetration Loss</td><td>pen ≤ 0.03</td><td>0.03–0.12 → 0.22</td><td>pen > 0.22</td><td>10%</td></tr>
+        </table>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;">
+          <b>Series Barrier Logic (Conservative mode):</b> If ANY layer has continuity score > 66, the system-level barrier is classified FAIL regardless of other layers.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Model Assumptions & Limitations</div>
+        <ul style="font-size:11px;color:var(--muted);line-height:1.7;padding-left:16px;">
+          <li>No CFD simulation — flow inside die slot is not resolved</li>
+          <li>No explicit air entrainment velocity threshold calculation</li>
+          <li>No microdefect / pinhol / morphology prediction</li>
+          <li>Barrier resistance / diffusion not simulated</li>
+          <li>Penetration model is static fraction (or simple sqrt(t)); no capillary transport model</li>
+          <li>Scoring bands are engineering heuristics, not physical limits</li>
+          <li>Correlated MC uses simplified linear correlation approximation</li>
+          <li>Density is assumed constant (no composition-viscosity iteration)</li>
+          <li>Output is plausibility screening for process window assessment only</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-model -->
+
+<!-- ================================================================ RESULTS ================================================================ -->
+<div id="page-results" class="page">
+
+  <div id="results-notice" class="notice">Press <b>Calculate</b> on the Input tab to update results.</div>
+
+  <div id="system-summary"></div>
+
+  <div id="layer-results" class="grid g3"></div>
+
+</div><!-- /page-results -->
+
+<!-- ================================================================ VISUALIZATION ================================================================ -->
+<div id="page-viz" class="page">
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">Heatmap A — Speed [m/min] × Gap [µm] → Process Score</div>
+      <div class="grid g4" style="margin-bottom:8px;">
+        <div class="field"><label>Speed min</label><input id="sv_min" type="number" value="800" step="100"></div>
+        <div class="field"><label>Speed max</label><input id="sv_max" type="number" value="2000" step="100"></div>
+        <div class="field"><label>Gap min [µm]</label><input id="sh_min" type="number" value="30" step="5"></div>
+        <div class="field"><label>Gap max [µm]</label><input id="sh_max" type="number" value="120" step="5"></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label>Layer for heatmap A</label>
+        <select id="hm_layer_a"><option value="0">Heat Barrier</option><option value="1">MOH Barrier</option><option value="2">Top Coat</option></select>
+      </div>
+      <canvas id="heatVH" width="580" height="300"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Heatmap B — Thickener c_thick [wt-%] × Solids x_s [–] → Combined Score</div>
+      <div class="grid g4" style="margin-bottom:8px;">
+        <div class="field"><label>c_thick min</label><input id="sc_min" type="number" value="0.1" step="0.05"></div>
+        <div class="field"><label>c_thick max</label><input id="sc_max" type="number" value="0.8" step="0.05"></div>
+        <div class="field"><label>x_s min</label><input id="sx_min" type="number" value="0.28" step="0.01"></div>
+        <div class="field"><label>x_s max</label><input id="sx_max" type="number" value="0.45" step="0.01"></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label>Layer for heatmap B</label>
+        <select id="hm_layer_b"><option value="0">Heat Barrier</option><option value="1">MOH Barrier</option><option value="2">Top Coat</option></select>
+      </div>
+      <canvas id="heatCX" width="580" height="300"></canvas>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">Monte Carlo — System Process Score Distribution</div>
+      <canvas id="histStab" width="580" height="230"></canvas>
+      <div id="mc_stab_txt" style="font-size:11px;color:var(--muted);margin-top:6px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Monte Carlo — System Continuity Score Distribution</div>
+      <canvas id="histCont" width="580" height="230"></canvas>
+      <div id="mc_cont_txt" style="font-size:11px;color:var(--muted);margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Sensitivity — Parameter Impact on System Score</div>
+    <canvas id="sensitivityChart" width="1140" height="200"></canvas>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;">Bars show change in system score when each parameter is varied ±20% from nominal. Taller bar = higher sensitivity.</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="drawAllViz()">Refresh Visualizations</button>
+  </div>
+
+</div><!-- /page-viz -->
+
+<!-- ================================================================ REPORT ================================================================ -->
+<div id="page-report" class="page">
+
+  <div class="card">
+    <div class="card-title">Engineering Assessment Report</div>
+    <textarea id="report_text" style="min-height:180px;font-size:12px;font-family:var(--sans);" readonly></textarea>
+    <div class="btn-row">
+      <button class="btn" onclick="document.getElementById('report_text').select();document.execCommand('copy')">Copy Report</button>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title">JSON Export / Import</div>
+      <textarea id="json_io" placeholder="Export to JSON or paste JSON here to import..."></textarea>
+      <div class="btn-row">
+        <button class="btn" onclick="exportJSON()">Export JSON</button>
+        <button class="btn" onclick="importJSON()">Import JSON</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">CSV Export</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Exports all calculated per-layer metrics for the current parameter set as a comma-separated values file.</p>
+      <div class="btn-row">
+        <button class="btn" onclick="exportCSV()">Download CSV</button>
+        <button class="btn" onclick="exportMCCSV()">Download Monte Carlo CSV</button>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin-top:8px;">Monte Carlo CSV contains raw sample data (scores per sample). Run Monte Carlo first on the Input tab.</p>
+    </div>
+  </div>
+
+</div><!-- /page-report -->
+
+</div><!-- /main -->
+
+<script>
+(()=>{
+'use strict';
+
+// ────────────────────────────────────────────────────────────────
+// UTILITIES
+// ────────────────────────────────────────────────────────────────
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const safe=(v,fb=0)=>Number.isFinite(v)?v:fb;
+const fmt=(v,n=3)=>Number.isFinite(v)?v.toFixed(n):'—';
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const lerp=(v,a,b,x,y)=>x+(y-x)*((v-a)/(b-a));
+const weighted=arr=>clamp(arr.reduce((s,[v,w])=>s+v*w,0),0,100);
+const ni=(id,fb)=>{const el=document.getElementById(id);if(!el)return fb;const n=parseFloat(el.value);return Number.isFinite(n)?n:fb;};
+const statusClass=s=>s<=33?'ok':s<=66?'warn':'bad';
+const statusLabel=s=>s<=33?'Plausible / Stable':s<=66?'Critical / Warning':'High Risk / Implausible';
+const pillHtml=(s,lbl)=>`<span class="pill pill-${statusClass(s)}">${lbl||statusLabel(s)}</span>`;
+const colorByScore=s=>{
+  if(s<=33)return '#2a7a46';
+  if(s<=66)return '#b07a00';
+  return '#c0201e';
+};
+const colorByScoreLight=s=>{
+  if(s<=33)return '#d4edda';
+  if(s<=66)return '#fff3cd';
+  return '#f8d7da';
+};
+
+// ────────────────────────────────────────────────────────────────
+// DEFAULTS / STATE
+// ────────────────────────────────────────────────────────────────
+const DEFAULTS={
+  global:{speed_mpm:1600,width_m:5.2,gap_um:60,land_mm:0.5,x_s_ref:0.35,conservative_mode:true},
+  layers:[
+    {key:'heat',name:'Heat Barrier',
+     dry_gsm:1.52,solids:0.35,rho_wet:1030,rho_dry:1240,sigma:0.038,
+     mu_direct:0.18,mu_base:0.08,c_thick:0.30,k_thick:18,k_solids:6,n:0.75,
+     penetration_fraction:0.12,min_continuous_dry_um:0.70,
+     viscosity_mode:'direct',rheology_model:'exp',
+     composition:[['PHA',81],['PVOH',12],['Citrate',4],['Dispersant',2],['Wetting agent',1],['Defoamer',1]]},
+    {key:'moh',name:'MOH Barrier',
+     dry_gsm:0.94,solids:0.35,rho_wet:1040,rho_dry:1290,sigma:0.042,
+     mu_direct:0.40,mu_base:0.12,c_thick:0.40,k_thick:25,k_solids:8,n:0.60,
+     penetration_fraction:0.08,min_continuous_dry_um:0.55,
+     viscosity_mode:'model',rheology_model:'power',
+     composition:[['Chitosan',69],['PVOH',25],['Glycerine',3],['Glyoxal',1.5],['Wetting agent',1],['Defoamer',0.5]]},
+    {key:'top',name:'Top Coat (Hydrophobic)',
+     dry_gsm:1.54,solids:0.35,rho_wet:1010,rho_dry:1060,sigma:0.032,
+     mu_direct:0.12,mu_base:0.05,c_thick:0.20,k_thick:14,k_solids:5,n:0.80,
+     penetration_fraction:0.03,min_continuous_dry_um:0.75,
+     viscosity_mode:'model',rheology_model:'exp',
+     composition:[['AKD',35],['Shellac (E904)',20],['Acrylate binder',40],['Slip additive',3],['Wetting agent',1],['Defoamer',1]]}
+  ]
+};
+
+let state=JSON.parse(JSON.stringify(DEFAULTS));
+let lastMCdata={stab:[],cont:[]};
+let lastCalcRows=null;
+
+// ────────────────────────────────────────────────────────────────
+// PHYSICS CORE
+// ────────────────────────────────────────────────────────────────
+function getViscosity(layer,gammaDot,g){
+  if(layer.viscosity_mode==='direct') return clamp(layer.mu_direct,1e-4,20);
+  const xref=g.x_s_ref||0.35;
+  const expo=layer.k_thick*layer.c_thick+layer.k_solids*(layer.solids-xref);
+  if(layer.rheology_model==='exp') return clamp(layer.mu_base*Math.exp(expo),1e-4,50);
+  const K=layer.mu_base*Math.exp(expo);
+  const n=clamp(layer.n,0.2,1.2);
+  return clamp(K*Math.pow(Math.max(gammaDot,1e-6),n-1),1e-4,200);
+}
+
+function scoreBand(v,a,b,c,d,highBad){
+  if(highBad){
+    if(v<=a)return 5;
+    if(v<=b)return lerp(v,a,b,5,30);
+    if(v<=c)return lerp(v,b,c,30,62);
+    if(v<=d)return lerp(v,c,d,62,88);
+    return 96;
+  }
+  if(v>=d)return 5;
+  if(v>=c)return lerp(v,d,c,5,30);
+  if(v>=b)return lerp(v,c,b,30,62);
+  if(v>=a)return lerp(v,b,a,62,88);
+  return 96;
+}
+
+function calcLayer(layer,g,opt={}){
+  const U=clamp((g.speed_mpm||0)/60,1e-6,200);
+  const b=clamp(g.width_m,0.05,20);
+  const H=clamp(g.gap_um*1e-6,1e-7,5e-3);
+  const L=clamp(g.land_mm*1e-3,1e-6,5e-2);
+
+  const solids=clamp(layer.solids,0.01,0.8);
+  const dry=clamp(layer.dry_gsm,0.01,50);
+  const rhoWet=clamp(layer.rho_wet,700,2200);
+  const rhoDry=clamp(layer.rho_dry,700,2500);
+  const sigma=clamp(layer.sigma,0.015,0.090);
+
+  const mWet=dry/solids;
+  const hWet=(mWet/1000)/rhoWet;
+  const hDry=(dry/1000)/rhoDry;
+
+  const gammaDot=U/H;
+  const mu=getViscosity(layer,gammaDot,g);
+
+  const Q=U*b*hWet;
+  const Q_L_min=Q*60000;
+
+  const Ca=mu*U/sigma;
+  const Re=rhoWet*U*H/mu;
+  const Lambda=H/Math.max(hWet,1e-9);
+  const dpScale=12*mu*U*L/(H*H);
+
+  const penFrac=clamp(layer.penetration_fraction,0,0.5);
+  let hPenTime=0;
+  if(opt.useTimePen){
+    const t=clamp(opt.contact_ms/1000,1e-4,2);
+    hPenTime=clamp((opt.k_pen||0)*1e-6*Math.sqrt(t),0,hWet*0.95);
+  }
+  const hEffWet=Math.max(hWet*(1-penFrac)-hPenTime,0);
+  const hEffDry=hDry*(hEffWet/Math.max(hWet,1e-12));
+  const Qeff=Q/Math.max(hEffWet/Math.max(hWet,1e-12),1e-6);
+
+  const targetDry=clamp(layer.min_continuous_dry_um*1e-6,1e-8,50e-6);
+  const reserve=hEffDry/targetDry;
+
+  // ── Component scores (0=good, 100=bad) ──
+  const sCa=scoreBand(Ca,0.1,2.0,5.0,9.0,true);
+  const sLambda=scoreBand(Lambda,0.5,1.4,3.0,6.0,true);
+  const sRe=scoreBand(Re,0.5,50,120,250,true);
+  const sQ=scoreBand(Q_L_min,20,600,1500,3000,true);
+  const sPen=scoreBand(penFrac,0.03,0.12,0.22,0.35,true);
+  const sEffWet=scoreBand(hEffWet*1e6,3,7,11,16,false);
+  const sReserve=scoreBand(reserve,0.8,1.1,1.4,1.8,false);
+
+  const processScore=weighted([[sCa,0.18],[sLambda,0.19],[sRe,0.12],[sQ,0.15],[sPen,0.14],[sEffWet,0.12],[sReserve,0.10]]);
+
+  const cReserve=scoreBand(reserve,0.75,1.0,1.25,1.5,false);
+  const cAbsThick=scoreBand(hEffDry*1e6,
+    layer.min_continuous_dry_um*0.7,layer.min_continuous_dry_um,
+    layer.min_continuous_dry_um*1.25,layer.min_continuous_dry_um*1.6,false);
+  const continuityScore=weighted([[cReserve,0.55],[cAbsThick,0.35],[sPen,0.10]]);
+
+  // Continuity classification
+  let contClass;
+  if(reserve>=1.5)contClass='Robust';
+  else if(reserve>=1.0)contClass='Critical';
+  else contClass='High Risk';
+
+  return {
+    U,H,L,b,
+    mWet,hWet,hDry,hEffWet,hEffDry,
+    Q,Q_L_min,Qeff_L_min:Qeff*60000,
+    Ca,Re,Lambda,gammaDot,dpScale,mu,
+    penFrac,reserve,hPenTime,
+    // Component scores for display
+    sCa,sLambda,sRe,sQ,sPen,sEffWet,sReserve,
+    cReserve,cAbsThick,
+    processScore,continuityScore,contClass,
+    statusProcess:statusLabel(processScore),
+    statusCont:statusLabel(continuityScore)
+  };
+}
+
+function calcAll(opt={}){
+  return state.layers.map(layer=>({layer,r:calcLayer(layer,state.global,opt)}));
+}
+
+// ────────────────────────────────────────────────────────────────
+// UI — LAYER CARDS BUILD
+// ────────────────────────────────────────────────────────────────
+function buildLayerCards(){
+  const root=document.getElementById('layerCards');
+  root.innerHTML='';
+  const colors=['layer-heat','layer-moh','layer-top'];
+  state.layers.forEach((ly,i)=>{
+    const p=`L${i}_`;
+    const comp=ly.composition.map(c=>`${c[0]} ${c[1]}%`).join(' · ');
+    const div=document.createElement('div');
+    div.className=`card ${colors[i]}`;
+    div.innerHTML=`
+      <div class="card-title">${ly.name}</div>
+      <div class="section-label" style="margin-bottom:4px;">Composition</div>
+      <p style="font-size:10px;color:var(--muted);margin-bottom:8px;">${comp}</p>
+      <div class="section-label">Film Parameters</div>
+      <div class="grid g2" style="margin-bottom:8px;">
+        ${fld(p,'dry_gsm','Dry Coat Weight [g/m²]',ly.dry_gsm,'0.01')}
+        ${fld(p,'solids','Solids x_s [–]',ly.solids,'0.01')}
+        ${fld(p,'rho_wet','ρ_wet [kg/m³]',ly.rho_wet,'1')}
+        ${fld(p,'rho_dry','ρ_dry [kg/m³]',ly.rho_dry,'1')}
+        ${fld(p,'sigma','Surface Tension σ [N/m]',ly.sigma,'0.001')}
+      </div>
+      <div class="section-label">Viscosity Model</div>
+      <div class="grid g2" style="margin-bottom:8px;">
+        <div class="field"><label>Viscosity Input Mode</label><select id="${p}viscosity_mode"><option value="direct">Direct Input</option><option value="model">Thickener Model</option></select></div>
+        <div class="field"><label>Rheology Model</label><select id="${p}rheology_model"><option value="exp">Exponential</option><option value="power">Power-Law</option></select></div>
+        ${fld(p,'mu_direct','Direct μ [Pa·s]',ly.mu_direct,'0.01')}
+        ${fld(p,'mu_base','μ_base / K₀ [Pa·s]',ly.mu_base,'0.005')}
+        ${fld(p,'c_thick','Thickener c_thick [wt-%]',ly.c_thick,'0.01')}
+        ${fld(p,'k_thick','k_thick [–]',ly.k_thick,'0.1')}
+        ${fld(p,'k_solids','k_solids [–]',ly.k_solids,'0.1')}
+        ${fld(p,'n','Power-Law n [–]',ly.n,'0.01')}
+      </div>
+      <div class="section-label">Penetration & Continuity</div>
+      <div class="grid g2">
+        ${fld(p,'penetration_fraction','Penetration Fraction [0–0.5]',ly.penetration_fraction,'0.01')}
+        ${fld(p,'min_continuous_dry_um','Min. Continuous h_dry [µm]',ly.min_continuous_dry_um,'0.01')}
+      </div>`;
+    root.appendChild(div);
+    document.getElementById(p+'viscosity_mode').value=ly.viscosity_mode;
+    document.getElementById(p+'rheology_model').value=ly.rheology_model;
+  });
+}
+
+const fld=(p,key,lbl,val,step)=>`<div class="field"><label>${lbl}</label><input id="${p}${key}" type="number" step="${step}" value="${val}"></div>`;
+
+// ────────────────────────────────────────────────────────────────
+// UI — UPDATE STATE FROM INPUTS
+// ────────────────────────────────────────────────────────────────
+function updateFromUI(){
+  const g=state.global;
+  g.speed_mpm=ni('speed_mpm',g.speed_mpm);
+  g.width_m=ni('width_m',g.width_m);
+  g.gap_um=ni('gap_um',g.gap_um);
+  g.land_mm=ni('land_mm',g.land_mm);
+  g.x_s_ref=ni('x_s_ref',g.x_s_ref);
+  g.conservative_mode=document.getElementById('conservative_mode').value==='true';
+
+  state.layers.forEach((ly,i)=>{
+    const p=`L${i}_`;
+    ['dry_gsm','solids','rho_wet','rho_dry','sigma','mu_direct','mu_base','c_thick','k_thick','k_solids','n','penetration_fraction','min_continuous_dry_um']
+      .forEach(k=>ly[k]=ni(p+k,ly[k]));
+    ly.viscosity_mode=document.getElementById(p+'viscosity_mode').value;
+    ly.rheology_model=document.getElementById(p+'rheology_model').value;
+  });
+}
+
+function fillUI(){
+  const g=state.global;
+  ['speed_mpm','width_m','gap_um','land_mm','x_s_ref'].forEach(k=>{
+    const el=document.getElementById(k); if(el) el.value=g[k];
+  });
+  document.getElementById('conservative_mode').value=String(g.conservative_mode);
+  buildLayerCards();
+}
+
+// ────────────────────────────────────────────────────────────────
+// RESULTS RENDERING
+// ────────────────────────────────────────────────────────────────
+function scoreBarHtml(label,score,rangeDesc){
+  const col=colorByScore(score);
+  return `<div class="score-row">
+    <span class="score-label">${label}</span>
+    <div class="score-bar-wrap"><div class="score-bar" style="width:${score}%;background:${col};"></div></div>
+    <span class="score-value" style="color:${col};">${fmt(score,1)}</span>
+    <span class="score-range">${rangeDesc}</span>
+  </div>`;
+}
+
+function renderResults(rows){
+  document.getElementById('results-notice').style.display='none';
+  lastCalcRows=rows;
+
+  // ── System Summary ──
+  const totalQ=rows.reduce((s,x)=>s+x.r.Q_L_min,0);
+  const pAvg=rows.reduce((s,x)=>s+x.r.processScore,0)/rows.length;
+  const cAvg=rows.reduce((s,x)=>s+x.r.continuityScore,0)/rows.length;
+  const sysProc=state.global.conservative_mode?Math.max(...rows.map(x=>x.r.processScore)):pAvg;
+  const sysCont=state.global.conservative_mode?Math.max(...rows.map(x=>x.r.continuityScore)):cAvg;
+  const sysOverall=state.global.conservative_mode?Math.max(sysProc,sysCont):weighted([[pAvg,0.55],[cAvg,0.45]]);
+  const anyContFail=rows.some(x=>x.r.continuityScore>66);
+
+  const weakestProc=rows.reduce((w,x)=>x.r.processScore>w.r.processScore?x:w,rows[0]);
+  const weakestCont=rows.reduce((w,x)=>x.r.continuityScore>w.r.continuityScore?x:w,rows[0]);
+  const domFlow=rows.reduce((a,b)=>a.r.Q_L_min>b.r.Q_L_min?a:b);
+
+  const sysSumEl=document.getElementById('system-summary');
+  sysSumEl.innerHTML=`
+    <div class="card">
+      <div class="card-title">System Summary</div>
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-label">Total Flow Rate</div><div class="kpi-val">${fmt(totalQ,1)}</div><div class="kpi-unit">L/min (all layers)</div></div>
+        <div class="kpi-box"><div class="kpi-label">System Process Score</div><div class="kpi-val" style="color:${colorByScore(sysProc)}">${fmt(sysProc,1)}</div><div class="kpi-unit">${statusLabel(sysProc)}</div></div>
+        <div class="kpi-box"><div class="kpi-label">System Continuity Score</div><div class="kpi-val" style="color:${colorByScore(sysCont)}">${fmt(sysCont,1)}</div><div class="kpi-unit">${statusLabel(sysCont)}</div></div>
+        <div class="kpi-box"><div class="kpi-label">Overall System Risk</div><div class="kpi-val" style="color:${colorByScore(sysOverall)}">${fmt(sysOverall,1)}</div><div class="kpi-unit">${statusLabel(sysOverall)}</div></div>
+        <div class="kpi-box"><div class="kpi-label">Weakest Process</div><div class="kpi-val" style="font-size:12px;">${weakestProc.layer.name}</div><div class="kpi-unit">Score ${fmt(weakestProc.r.processScore,1)}</div></div>
+        <div class="kpi-box"><div class="kpi-label">Weakest Continuity</div><div class="kpi-val" style="font-size:12px;">${weakestCont.layer.name}</div><div class="kpi-unit">Score ${fmt(weakestCont.r.continuityScore,1)}</div></div>
+        <div class="kpi-box"><div class="kpi-label">Dominant Flow Layer</div><div class="kpi-val" style="font-size:12px;">${domFlow.layer.name}</div><div class="kpi-unit">${fmt(domFlow.r.Q_L_min,1)} L/min</div></div>
+        <div class="kpi-box"><div class="kpi-label">Series Barrier Logic</div>
+          <div class="kpi-val" style="font-size:13px;${anyContFail?'color:#c0201e;':'color:#1e7a3c;'}">${anyContFail?'FAIL':'PASS'}</div>
+          <div class="kpi-unit">${state.global.conservative_mode?'Conservative mode':'Weighted mode'}</div>
+        </div>
+      </div>
+      ${anyContFail&&state.global.conservative_mode?`<div class="notice bad-notice" style="margin-top:4px;">⚠ Series barrier logic: at least one layer exceeds continuity threshold → system barrier classified as FAIL under conservative mode.</div>`:''}
+    </div>`;
+
+  // ── Per-layer results ──
+  const root=document.getElementById('layer-results');
+  root.innerHTML='';
+  const colors=['layer-heat','layer-moh','layer-top'];
+  rows.forEach(({layer,r},i)=>{
+    const div=document.createElement('div');
+    div.className=`card ${colors[i]}`;
+    div.innerHTML=`
+      <div class="card-title">${layer.name}</div>
+
+      <div class="section-label">Film & Flow Metrics</div>
+      <table class="data-table" style="margin-bottom:10px;">
+        <tr><td>Wet coat weight m_wet''</td><td class="num">${fmt(r.mWet,3)} g/m²</td></tr>
+        <tr><td>Wet film h_wet</td><td class="num">${fmt(r.hWet*1e6,2)} µm</td></tr>
+        <tr><td>Dry film h_dry</td><td class="num">${fmt(r.hDry*1e6,3)} µm</td></tr>
+        <tr><td>Eff. wet film h_eff_wet</td><td class="num">${fmt(r.hEffWet*1e6,3)} µm</td></tr>
+        <tr><td>Eff. dry film h_eff_dry</td><td class="num">${fmt(r.hEffDry*1e6,3)} µm</td></tr>
+        <tr><td>Flow rate Q</td><td class="num">${fmt(r.Q_L_min,2)} L/min</td></tr>
+        <tr><td>Corrected Q_eff</td><td class="num">${fmt(r.Qeff_L_min,2)} L/min</td></tr>
+        <tr><td>Dynamic viscosity μ</td><td class="num">${fmt(r.mu,4)} Pa·s</td></tr>
+        <tr><td>Shear rate γ̇</td><td class="num">${fmt(r.gammaDot,1)} s⁻¹</td></tr>
+        <tr><td>Pressure scale Δp</td><td class="num">${fmt(r.dpScale,1)} Pa</td></tr>
+        <tr><td>Continuity reserve</td><td class="num" style="font-weight:700;color:${colorByScore(r.cReserve)}">${fmt(r.reserve,3)} (${r.contClass})</td></tr>
+      </table>
+
+      <div class="section-label">Process Score Components — ${pillHtml(r.processScore,'Process: '+fmt(r.processScore,1))}</div>
+      ${scoreBarHtml('Capillary No. Ca',r.sCa,`Ca=${fmt(r.Ca,3)} | OK<0.1 · Warn 0.1–2 · Crit 2–5 · High>5`)}
+      ${scoreBarHtml('Gap Ratio Λ=H/h_wet',r.sLambda,`Λ=${fmt(r.Lambda,2)} | OK<0.5 · Warn 0.5–1.4 · Crit 1.4–3`)}
+      ${scoreBarHtml('Reynolds No. Re',r.sRe,`Re=${fmt(r.Re,2)} | OK<0.5 · Warn 0.5–50 · Crit 50–120`)}
+      ${scoreBarHtml('Flow Rate Q',r.sQ,`Q=${fmt(r.Q_L_min,1)} L/min | OK<20 · Warn 20–600`)}
+      ${scoreBarHtml('Penetration Fraction',r.sPen,`pen=${fmt(r.penFrac,3)} | OK<0.03 · Warn 0.03–0.12`)}
+      ${scoreBarHtml('Eff. Wet Thickness',r.sEffWet,`${fmt(r.hEffWet*1e6,2)} µm | Good>16µm · Crit<7µm`)}
+      ${scoreBarHtml('Continuity Reserve',r.sReserve,`reserve=${fmt(r.reserve,2)} | Good>1.8 · Crit<1.0`)}
+
+      <div class="section-label" style="margin-top:8px;">Continuity Score Components — ${pillHtml(r.continuityScore,'Continuity: '+fmt(r.continuityScore,1))}</div>
+      ${scoreBarHtml('Reserve Ratio',r.cReserve,`reserve=${fmt(r.reserve,2)} | Robust≥1.5 · Crit 1.0–1.5 · Fail<1.0`)}
+      ${scoreBarHtml('Absolute h_eff_dry',r.cAbsThick,`${fmt(r.hEffDry*1e6,3)} µm vs min ${layer.min_continuous_dry_um} µm`)}
+      ${scoreBarHtml('Penetration Loss',r.sPen,`pen=${fmt(r.penFrac,3)} | low pen = lower risk`)}
+    `;
+    root.appendChild(div);
+  });
+
+  renderReportText(rows,sysProc,sysCont,sysOverall,anyContFail);
+}
+
+// ────────────────────────────────────────────────────────────────
+// REPORT TEXT
+// ────────────────────────────────────────────────────────────────
+function renderReportText(rows,sysProc,sysCont,sysOverall,anyContFail){
+  const weakestProc=rows.reduce((w,x)=>x.r.processScore>w.r.processScore?x:w,rows[0]);
+  const weakestCont=rows.reduce((w,x)=>x.r.continuityScore>w.r.continuityScore?x:w,rows[0]);
+  const domFlow=rows.reduce((a,b)=>a.r.Q_L_min>b.r.Q_L_min?a:b);
+  const totalQ=rows.reduce((s,x)=>s+x.r.Q_L_min,0);
+
+  const lines=[];
+  lines.push('SLOT-DIE COATING ENGINEERING SCREENING REPORT');
+  lines.push('==============================================');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  lines.push(`Line Speed: ${state.global.speed_mpm} m/min | Width: ${state.global.width_m} m | Gap: ${state.global.gap_um} µm | Lip Length: ${state.global.land_mm} mm`);
+  lines.push('');
+  lines.push('SYSTEM ASSESSMENT');
+  lines.push(`  Overall Risk Score: ${fmt(sysOverall,1)} → ${statusLabel(sysOverall)}`);
+  lines.push(`  System Process Score: ${fmt(sysProc,1)} | System Continuity Score: ${fmt(sysCont,1)}`);
+  lines.push(`  Series Barrier Result: ${anyContFail&&state.global.conservative_mode?'FAIL — at least one layer exceeds continuity threshold':'PASS — all layers within continuity threshold'}`);
+  lines.push(`  Total Volume Flow (all layers): ${fmt(totalQ,1)} L/min`);
+  lines.push(`  Dominant Flow Layer: ${domFlow.layer.name} (${fmt(domFlow.r.Q_L_min,1)} L/min)`);
+  lines.push('');
+  lines.push('PER-LAYER SUMMARY');
+  rows.forEach(({layer,r})=>{
+    lines.push(`  ${layer.name}:`);
+    lines.push(`    Process Score: ${fmt(r.processScore,1)} (${r.statusProcess})`);
+    lines.push(`    Continuity Score: ${fmt(r.continuityScore,1)} (${r.statusCont}) — Reserve: ${fmt(r.reserve,2)} → ${r.contClass}`);
+    lines.push(`    Ca=${fmt(r.Ca,4)}  Re=${fmt(r.Re,3)}  Λ=${fmt(r.Lambda,2)}  μ=${fmt(r.mu,4)} Pa·s`);
+    lines.push(`    h_wet=${fmt(r.hWet*1e6,2)} µm | h_eff_dry=${fmt(r.hEffDry*1e6,3)} µm | Q=${fmt(r.Q_L_min,2)} L/min`);
+  });
+  lines.push('');
+  lines.push('KEY FINDINGS');
+  if(weakestProc.r.processScore>66){
+    lines.push(`  ⚠ Process-critical layer: ${weakestProc.layer.name} (score ${fmt(weakestProc.r.processScore,1)}). `+
+      `Primary risk indicators: Ca=${fmt(weakestProc.r.Ca,3)}, Λ=${fmt(weakestProc.r.Lambda,2)}.`);
+  } else if(weakestProc.r.processScore>33){
+    lines.push(`  ~ Process-marginal layer: ${weakestProc.layer.name} (score ${fmt(weakestProc.r.processScore,1)}). Monitor Ca and gap ratio.`);
+  } else {
+    lines.push(`  ✓ All layers appear process-stable under current assumptions.`);
+  }
+  if(weakestCont.r.continuityScore>66){
+    lines.push(`  ⚠ Continuity-critical layer: ${weakestCont.layer.name} (score ${fmt(weakestCont.r.continuityScore,1)}). `+
+      `Effective dry thickness ${fmt(weakestCont.r.hEffDry*1e6,3)} µm vs minimum ${weakestCont.layer.min_continuous_dry_um} µm required.`);
+    lines.push(`  Recommendation: Reduce penetration fraction, increase dry coat weight, or lower gap.`);
+  } else if(weakestCont.r.continuityScore>33){
+    lines.push(`  ~ Continuity-marginal layer: ${weakestCont.layer.name}. Reserve=${fmt(weakestCont.r.reserve,2)} is in critical zone (1.0–1.5).`);
+    lines.push(`  Recommendation: Review penetration parameters and increase process margin before scale-up.`);
+  } else {
+    lines.push(`  ✓ All layers appear to have adequate continuity margin.`);
+  }
+  lines.push('');
+  lines.push('DISCLAIMER: This report is an engineering plausibility screening only. It is not a CFD simulation,');
+  lines.push('not a defect predictor, and not a guarantee of coating quality. All thresholds are heuristic estimates.');
+
+  document.getElementById('report_text').value=lines.join('\n');
+}
+
+// ────────────────────────────────────────────────────────────────
+// MONTE CARLO (with parameter correlations)
+// ────────────────────────────────────────────────────────────────
+function runMonteCarlo(){
+  updateFromUI();
+  const n=clamp(Math.round(ni('mc_samples',1000)),10,10000);
+  const u={
+    mu:ni('u_mu',20)/100,
+    sigma:ni('u_sigma',10)/100,
+    solids:ni('u_solids',5)/100,
+    gap:ni('u_gap',8)/100,
+    pen:ni('u_pen',25)/100
+  };
+  const useTimePen=document.getElementById('use_time_pen').value==='true';
+  const kPen=ni('k_pen',0);
+  const contactMs=ni('contact_ms',20);
+
+  const stab=[],cont=[];
+  let good=0,crit=0,bad=0;
+
+  for(let i=0;i<n;i++){
+    // ── Correlated noise (global) ──
+    const gapNoise=rnd(-1,1)*u.gap;
+
+    const g=JSON.parse(JSON.stringify(state.global));
+    g.gap_um=clamp(g.gap_um*(1+gapNoise),1,500);
+
+    const simRows=state.layers.map(layerBase=>{
+      const ly=JSON.parse(JSON.stringify(layerBase));
+
+      // Correlated variation:
+      // 1. solids variation
+      const solidsNoise=rnd(-1,1)*u.solids;
+      ly.solids=clamp(ly.solids*(1+solidsNoise),0.05,0.75);
+
+      // 2. mu correlates positively with solids variation
+      const muNoise=rnd(-1,1)*u.mu + 0.6*solidsNoise; // solids↑ → mu↑
+      if(ly.viscosity_mode==='direct') ly.mu_direct=clamp(ly.mu_direct*(1+muNoise),1e-4,40);
+      else ly.mu_base=clamp(ly.mu_base*(1+muNoise),1e-4,40);
+
+      // 3. penetration correlates negatively with mu noise
+      const penNoise=rnd(-1,1)*u.pen - 0.3*muNoise; // mu↑ → pen↓
+      ly.penetration_fraction=clamp(ly.penetration_fraction*(1+penNoise),0,0.5);
+
+      // 4. surface tension: lower sigma → better wetting (slightly reduce Ca risk)
+      const sigmaNoise=rnd(-1,1)*u.sigma;
+      ly.sigma=clamp(ly.sigma*(1+sigmaNoise),0.015,0.09);
+
+      return calcLayer(ly,g,{useTimePen,k_pen:kPen,contact_ms:contactMs});
+    });
+
+    const p=simRows.reduce((s,x)=>s+x.processScore,0)/simRows.length;
+    const c=simRows.reduce((s,x)=>s+x.continuityScore,0)/simRows.length;
+    const sys=state.global.conservative_mode?Math.max(...simRows.map(x=>Math.max(x.processScore,x.continuityScore))):weighted([[p,0.55],[c,0.45]]);
+    const cc=state.global.conservative_mode?Math.max(...simRows.map(x=>x.continuityScore)):c;
+
+    stab.push(sys); cont.push(cc);
+    if(sys<=33)good++; else if(sys<=66)crit++; else bad++;
+  }
+
+  lastMCdata={stab,cont};
+
+  drawHistogram(document.getElementById('histStab'),stab,20,'System Process Score Distribution');
+  document.getElementById('mc_stab_txt').textContent=
+    `n=${n} samples  |  Stable (≤33): ${fmt(good*100/n,1)}%  |  Critical (33–66): ${fmt(crit*100/n,1)}%  |  High Risk (>66): ${fmt(bad*100/n,1)}%`;
+
+  drawHistogram(document.getElementById('histCont'),cont,20,'System Continuity Score Distribution');
+  const cgood=cont.filter(x=>x<=33).length,ccrit=cont.filter(x=>x>33&&x<=66).length,cbad=cont.filter(x=>x>66).length;
+  document.getElementById('mc_cont_txt').textContent=
+    `n=${n} samples  |  Robust (≤33): ${fmt(cgood*100/n,1)}%  |  Critical (33–66): ${fmt(ccrit*100/n,1)}%  |  High Risk (>66): ${fmt(cbad*100/n,1)}%`;
+}
+
+// ────────────────────────────────────────────────────────────────
+// VISUALIZATION
+// ────────────────────────────────────────────────────────────────
+function drawHistogram(canvas,data,bins=20,title=''){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  if(!data.length)return;
+  const hist=Array.from({length:bins},()=>0);
+  data.forEach(v=>{const idx=clamp(Math.floor(v/100*bins),0,bins-1);hist[idx]++;});
+  const maxC=Math.max(...hist,1);
+  const pad={l:42,r:12,t:24,b:30};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+
+  // Grid
+  ctx.strokeStyle='#e0e4ec'; ctx.lineWidth=1;
+  for(let y=0;y<=4;y++){
+    const yy=pad.t+cH-y*cH/4;
+    ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(W-pad.r,yy);ctx.stroke();
+    ctx.fillStyle='#888';ctx.font='10px Arial';ctx.textAlign='right';
+    ctx.fillText(Math.round(maxC*y/4),pad.l-4,yy+3);
+  }
+
+  // Bars
+  const bw=cW/bins;
+  for(let i=0;i<bins;i++){
+    const vc=(i+0.5)*100/bins;
+    const bh=cH*(hist[i]/maxC);
+    ctx.fillStyle=vc<=33?'#4a9e6a':vc<=66?'#d4a017':'#c84040';
+    ctx.fillRect(pad.l+i*bw+1,pad.t+cH-bh,bw-2,bh);
+  }
+
+  // Axes
+  ctx.strokeStyle='#bbb';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+cH);ctx.lineTo(W-pad.r,pad.t+cH);ctx.stroke();
+  ctx.fillStyle='#555';ctx.font='10px Arial';ctx.textAlign='center';
+  for(let i=0;i<=4;i++){
+    ctx.fillText(i*25,pad.l+i*cW/4,pad.t+cH+14);
+  }
+  ctx.fillText('Score (0=stable, 100=critical)',pad.l+cW/2,H-3);
+  ctx.font='11px Arial';ctx.textAlign='left';ctx.fillStyle='#333';
+  ctx.fillText(title,pad.l,pad.t-6);
+
+  // Vertical threshold lines
+  ctx.setLineDash([4,3]);ctx.strokeStyle='#aaa';ctx.lineWidth=1;
+  [33,66].forEach(thresh=>{
+    const x=pad.l+thresh/100*cW;
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+cH);ctx.stroke();
+  });
+  ctx.setLineDash([]);
+}
+
+function drawHeatmap(canvas,nX,nY,getScore,xLab,yLab,xTicks,yTicks){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const pad={l:60,r:18,t:20,b:36};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  const cellW=cW/nX,cellH=cH/nY;
+
+  for(let j=0;j<nY;j++){
+    for(let i=0;i<nX;i++){
+      const s=getScore(i,j);
+      // Map score 0–100 to color
+      if(s<=33){const t=s/33;ctx.fillStyle=`rgb(${Math.round(lerp(t,0,1,210,240))},${Math.round(lerp(t,0,1,235,200))},${Math.round(lerp(t,0,1,210,170))})`;}
+      else if(s<=66){const t=(s-33)/33;ctx.fillStyle=`rgb(${Math.round(lerp(t,0,1,240,230))},${Math.round(lerp(t,0,1,200,160))},${Math.round(lerp(t,0,1,170,120))})`;}
+      else{const t=(s-66)/34;ctx.fillStyle=`rgb(${Math.round(lerp(t,0,1,230,210))},${Math.round(lerp(t,0,1,160,130))},${Math.round(lerp(t,0,1,120,130))})`;}
+      ctx.fillRect(pad.l+i*cellW,pad.t+(nY-1-j)*cellH,cellW+1,cellH+1);
+    }
+  }
+
+  // Border
+  ctx.strokeStyle='#ccc';ctx.lineWidth=1;
+  ctx.strokeRect(pad.l,pad.t,cW,cH);
+
+  // Axis labels
+  ctx.fillStyle='#555';ctx.font='10px Arial';
+  const xStep=Math.ceil(nX/6);
+  for(let i=0;i<nX;i+=xStep){
+    ctx.textAlign='center';
+    ctx.fillText(xTicks[i]?xTicks[i]:'',pad.l+i*cellW+cellW/2,H-4);
+  }
+  const yStep=Math.ceil(nY/5);
+  for(let j=0;j<nY;j+=yStep){
+    ctx.textAlign='right';
+    ctx.fillText(yTicks[j]?yTicks[j]:'',pad.l-4,pad.t+(nY-1-j)*cellH+cellH/2+3);
+  }
+  ctx.textAlign='center';ctx.font='11px Arial';ctx.fillStyle='#333';
+  ctx.fillText(xLab,pad.l+cW/2,H);
+  ctx.save();ctx.translate(12,pad.t+cH/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText(yLab,0,0);ctx.restore();
+
+  // Legend
+  const lx=pad.l+cW-90,ly=pad.t+6;
+  ctx.font='9px Arial';ctx.textAlign='left';
+  [[0,'#d2ecd8','Stable'],[1,'#f0d880','Critical'],[2,'#e6a0a0','High Risk']].forEach(([k,col,lbl])=>{
+    ctx.fillStyle=col;ctx.fillRect(lx,ly+k*13,10,10);
+    ctx.fillStyle='#333';ctx.fillText(lbl,lx+13,ly+k*13+9);
+  });
+}
+
+function drawAllViz(){
+  updateFromUI();
+  const opt={useTimePen:document.getElementById('use_time_pen').value==='true',k_pen:ni('k_pen',0),contact_ms:ni('contact_ms',20)};
+
+  // Heatmap A: speed × gap
+  {
+    const vMin=ni('sv_min',800),vMax=ni('sv_max',2000);
+    const hMin=ni('sh_min',30),hMax=ni('sh_max',120);
+    const li=parseInt(document.getElementById('hm_layer_a').value);
+    const nx=30,ny=24;
+    const xTicks=Array.from({length:nx},(_,i)=>Math.round(vMin+(vMax-vMin)*i/(nx-1)));
+    const yTicks=Array.from({length:ny},(_,j)=>Math.round(hMin+(hMax-hMin)*j/(ny-1)));
+    drawHeatmap(document.getElementById('heatVH'),nx,ny,(i,j)=>{
+      const speed=vMin+(vMax-vMin)*i/(nx-1);
+      const gap=hMin+(hMax-hMin)*j/(ny-1);
+      return calcLayer(state.layers[li],{...state.global,speed_mpm:speed,gap_um:gap},opt).processScore;
+    },'Speed [m/min]','Gap [µm]',xTicks,yTicks);
+  }
+
+  // Heatmap B: c_thick × solids
+  {
+    const cMin=ni('sc_min',0.1),cMax=ni('sc_max',0.8);
+    const xMin=ni('sx_min',0.28),xMax=ni('sx_max',0.45);
+    const li=parseInt(document.getElementById('hm_layer_b').value);
+    const nx=30,ny=24;
+    const xTicks=Array.from({length:nx},(_,i)=>(cMin+(cMax-cMin)*i/(nx-1)).toFixed(2));
+    const yTicks=Array.from({length:ny},(_,j)=>(xMin+(xMax-xMin)*j/(ny-1)).toFixed(2));
+    drawHeatmap(document.getElementById('heatCX'),nx,ny,(i,j)=>{
+      const ly={...JSON.parse(JSON.stringify(state.layers[li])),
+        c_thick:cMin+(cMax-cMin)*i/(nx-1),
+        solids:xMin+(xMax-xMin)*j/(ny-1),
+        viscosity_mode:'model'};
+      const r=calcLayer(ly,state.global,opt);
+      return 0.65*r.processScore+0.35*r.continuityScore;
+    },'Thickener c_thick [wt-%]','Solids x_s [–]',xTicks,yTicks);
+  }
+
+  // Sensitivity tornado chart
+  drawSensitivity();
+}
+
+function drawSensitivity(){
+  const canvas=document.getElementById('sensitivityChart');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+
+  const opt={useTimePen:false,k_pen:0,contact_ms:20};
+  const baseRows=calcAll(opt);
+  const baseScore=state.global.conservative_mode
+    ?Math.max(...baseRows.map(x=>Math.max(x.r.processScore,x.r.continuityScore)))
+    :(baseRows.reduce((s,x)=>s+x.r.processScore,0)/baseRows.length);
+
+  const pertParams=[
+    {label:'Speed',apply:(s,g,ly)=>({...g,speed_mpm:g.speed_mpm*s})},
+    {label:'Gap',apply:(s,g,ly)=>({...g,gap_um:g.gap_um*s})},
+    {label:'Viscosity μ',apply:(s,g,ly)=>{ const l2=JSON.parse(JSON.stringify(ly)); if(l2.viscosity_mode==='direct')l2.mu_direct*=s; else l2.mu_base*=s; return null; },layerMod:true},
+    {label:'Solids x_s',apply:(s,g,ly)=>{ const l2=JSON.parse(JSON.stringify(ly)); l2.solids*=s; return null; },layerMod:true},
+    {label:'Surface Tension σ',apply:(s,g,ly)=>{ const l2=JSON.parse(JSON.stringify(ly)); l2.sigma*=s; return null; },layerMod:true},
+    {label:'Penetration',apply:(s,g,ly)=>{ const l2=JSON.parse(JSON.stringify(ly)); l2.penetration_fraction*=s; return null; },layerMod:true},
+    {label:'Dry GSM',apply:(s,g,ly)=>{ const l2=JSON.parse(JSON.stringify(ly)); l2.dry_gsm*=s; return null; },layerMod:true},
+  ];
+
+  const delta=0.20;
+  const sens=pertParams.map(pp=>{
+    const scores=[];
+    for(const sf of[1-delta,1+delta]){
+      let rows;
+      if(!pp.layerMod){
+        const g2=pp.apply(sf,state.global,null);
+        rows=state.layers.map(ly=>({layer:ly,r:calcLayer(ly,g2,opt)}));
+      } else {
+        rows=state.layers.map(ly=>{
+          const l2=JSON.parse(JSON.stringify(ly));
+          if(pp.label==='Viscosity μ'){ if(l2.viscosity_mode==='direct')l2.mu_direct=clamp(l2.mu_direct*sf,1e-4,40); else l2.mu_base=clamp(l2.mu_base*sf,1e-4,40);}
+          else if(pp.label==='Solids x_s')l2.solids=clamp(l2.solids*sf,0.05,0.75);
+          else if(pp.label==='Surface Tension σ')l2.sigma=clamp(l2.sigma*sf,0.015,0.09);
+          else if(pp.label==='Penetration')l2.penetration_fraction=clamp(l2.penetration_fraction*sf,0,0.5);
+          else if(pp.label==='Dry GSM')l2.dry_gsm=clamp(l2.dry_gsm*sf,0.01,50);
+          return {layer:l2,r:calcLayer(l2,state.global,opt)};
+        });
+      }
+      const sys=state.global.conservative_mode
+        ?Math.max(...rows.map(x=>Math.max(x.r.processScore,x.r.continuityScore)))
+        :(rows.reduce((s,x)=>s+x.r.processScore,0)/rows.length);
+      scores.push(sys);
+    }
+    return {label:pp.label,low:scores[0],high:scores[1],impact:Math.abs(scores[1]-scores[0])};
+  });
+  sens.sort((a,b)=>b.impact-a.impact);
+
+  const pad={l:100,r:20,t:20,b:20};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  const barH=Math.floor(cH/sens.length)-4;
+  const maxImpact=Math.max(...sens.map(s=>s.impact),1);
+
+  sens.forEach((s,i)=>{
+    const y=pad.t+i*(cH/sens.length)+2;
+    const w=cW*s.impact/Math.max(maxImpact,1);
+    ctx.fillStyle='#2558a8';
+    ctx.fillRect(pad.l,y,w,barH);
+    ctx.fillStyle='#333';ctx.font='11px Arial';ctx.textAlign='right';
+    ctx.fillText(s.label,pad.l-6,y+barH/2+4);
+    ctx.fillStyle='#555';ctx.textAlign='left';
+    ctx.fillText(`±${fmt(s.impact,1)}`,pad.l+w+4,y+barH/2+4);
+  });
+
+  ctx.strokeStyle='#ccc';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+cH);ctx.stroke();
+  ctx.fillStyle='#888';ctx.font='10px Arial';ctx.textAlign='center';
+  ctx.fillText('Score impact when parameter varied ±20%',pad.l+cW/2,H-2);
+}
+
+// ────────────────────────────────────────────────────────────────
+// EXPORT / IMPORT
+// ────────────────────────────────────────────────────────────────
+function exportJSON(){
+  updateFromUI();
+  document.getElementById('json_io').value=JSON.stringify(state,null,2);
+}
+
+function importJSON(){
+  try{
+    const obj=JSON.parse(document.getElementById('json_io').value);
+    if(!obj||!obj.global||!Array.isArray(obj.layers)||obj.layers.length!==3) throw new Error('Invalid JSON structure');
+    state=obj;
+    fillUI();
+    doRun();
+  }catch(e){ alert('JSON import failed: '+e.message); }
+}
+
+function exportCSV(){
+  updateFromUI();
+  const opt={useTimePen:document.getElementById('use_time_pen').value==='true',k_pen:ni('k_pen',0),contact_ms:ni('contact_ms',20)};
+  const rows=calcAll(opt);
+  const hdr=['Layer','m_wet_gsm','h_wet_um','h_dry_um','h_eff_wet_um','h_eff_dry_um','Q_Lmin','Qeff_Lmin','Ca','Re','Lambda','gammaDot_1ps','dpScale_Pa','mu_Pa_s','reserve','processScore','continuityScore','contClass'];
+  const lines=[hdr.join(',')];
+  rows.forEach(({layer,r})=>{
+    lines.push([layer.name,fmt(r.mWet,4),fmt(r.hWet*1e6,4),fmt(r.hDry*1e6,4),fmt(r.hEffWet*1e6,4),fmt(r.hEffDry*1e6,4),
+      fmt(r.Q_L_min,3),fmt(r.Qeff_L_min,3),fmt(r.Ca,5),fmt(r.Re,4),fmt(r.Lambda,4),fmt(r.gammaDot,2),
+      fmt(r.dpScale,2),fmt(r.mu,5),fmt(r.reserve,4),fmt(r.processScore,3),fmt(r.continuityScore,3),r.contClass].join(','));
+  });
+  downloadBlob(new Blob([lines.join('\n')],{type:'text/csv'}), 'slot_die_results.csv');
+}
+
+function exportMCCSV(){
+  if(!lastMCdata.stab.length){ alert('Run Monte Carlo first (press Calculate on Input tab).'); return; }
+  const lines=['sample,processScore,continuityScore'];
+  lastMCdata.stab.forEach((s,i)=>lines.push(`${i+1},${fmt(s,3)},${fmt(lastMCdata.cont[i],3)}`));
+  downloadBlob(new Blob([lines.join('\n')],{type:'text/csv'}), 'slot_die_mc.csv');
+}
+
+function downloadBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=name;a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ────────────────────────────────────────────────────────────────
+// MAIN RUN
+// ────────────────────────────────────────────────────────────────
+function doRun(){
+  updateFromUI();
+  const opt={useTimePen:document.getElementById('use_time_pen').value==='true',k_pen:ni('k_pen',0),contact_ms:ni('contact_ms',20)};
+  const rows=calcAll(opt);
+  renderResults(rows);
+  runMonteCarlo();
+  drawAllViz();
+}
+
+function resetDefaults(){
+  state=JSON.parse(JSON.stringify(DEFAULTS));
+  fillUI();
+  doRun();
+}
+
+// ────────────────────────────────────────────────────────────────
+// TAB NAVIGATION
+// ────────────────────────────────────────────────────────────────
+window.showPage=function(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map={'page-input':0,'page-model':1,'page-results':2,'page-viz':3,'page-report':4};
+  document.querySelectorAll('.tab-btn')[map[id]].classList.add('active');
+  if(id==='page-viz'){ drawAllViz(); }
+};
+
+// Auto-recalc on input change (debounced)
+let debTimer=null;
+document.body.addEventListener('input',e=>{
+  if(e.target.matches('input[type=number],select')){
+    clearTimeout(debTimer);
+    debTimer=setTimeout(()=>{
+      if(document.querySelector('.page#page-input.active')||document.querySelector('.page#page-results.active')){
+        doRun();
+      }
+    },600);
+  }
+});
+
+// ────────────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────────────
+function init(){
+  fillUI();
+  doRun();
+}
+
+init();
+
+})();
+</script>
+</body>
+</html>
